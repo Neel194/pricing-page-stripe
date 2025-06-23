@@ -1,103 +1,232 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import Navbar from "./Navbar";
+import getStripe from "@/lib/getStripe";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [isYearly, setIsYearly] = useState(false);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const plans = [
+    {
+      name: "Basic",
+      priceMonthly: 10,
+      priceYearly: 100,
+      savings: 20,
+      description: "Essential features you need to get started",
+      features: [
+        "Example Feature Number 1",
+        "Example Feature Number 2",
+        "Example Feature Number 3",
+      ],
+      isMostPopular: false,
+    },
+    {
+      name: "Pro",
+      priceMonthly: 25,
+      priceYearly: 250,
+      savings: 50,
+      description: "Perfect for owners of small & medium businessess",
+      features: [
+        "Example Feature Number 1",
+        "Example Feature Number 2",
+        "Example Feature Number 3",
+      ],
+      isMostPopular: true,
+    },
+    {
+      name: "Enterprise",
+      priceMonthly: "Custom",
+      description: "Dedicated support and infrastructure to fit your needs",
+      features: [
+        "Example Feature Number 1",
+        "Example Feature Number 2",
+        "Example Feature Number 3",
+        "Super Exclusive Feature",
+      ],
+      isMostPopular: false,
+    },
+  ];
+
+  const handleCheckout = async (plan: any) => {
+    if (plan.name === "Enterprise") {
+      // Handle enterprise contact form or redirect
+      console.log("Contact sales for Enterprise plan");
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ plan, isYearly }),
+      });
+
+      const { sessionId } = await response.json();
+      if (!sessionId) {
+        throw new Error("Could not create checkout session");
+      }
+
+      const stripe = await getStripe();
+      if (stripe) {
+        stripe.redirectToCheckout({ sessionId });
+      }
+    } catch (error) {
+      console.error("Error during checkout:", error);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-screen">
+      <Navbar />
+      <div className="flex-grow flex items-center justify-center">
+        <div className="w-full">
+          <div className="text-center mb-4">
+            <h1 className="text-3xl font-bold">Pricing Plans</h1>
+            <p className="text-xl pt-1 text-muted-foreground">
+              Choose the plan that's right for you
+            </p>
+          </div>
+
+          <div className="flex justify-center mb-4">
+            <Tabs
+              defaultValue="monthly"
+              className="bg-muted rounded-lg p-1 border"
+              onValueChange={(value) => setIsYearly(value === "yearly")}
+            >
+              <TabsList className="w-48 bg-transparent border-none grid grid-cols-2">
+                <TabsTrigger
+                  value="monthly"
+                  className={cn(
+                    "px-4 py-1 rounded-md border-none font-semibold",
+                    !isYearly
+                      ? "bg-background text-foreground dark:bg-black dark:text-white"
+                      : "bg-transparent text-muted-foreground"
+                  )}
+                >
+                  Monthly
+                </TabsTrigger>
+                <TabsTrigger
+                  value="yearly"
+                  className={cn(
+                    "px-4 py-1 rounded-md border-none font-semibold",
+                    isYearly
+                      ? "bg-background text-foreground dark:bg-black dark:text-white"
+                      : "bg-transparent text-muted-foreground"
+                  )}
+                >
+                  Yearly
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="grid w-full max-w-4xl grid-cols-1 gap-4 md:grid-cols-3">
+              {plans.map((plan) => (
+                <Card
+                  key={plan.name}
+                  className={cn(
+                    "bg-card rounded-xl shadow-lg flex flex-col relative overflow-hidden border p-2",
+                    plan.isMostPopular && "border-2 border-blue-500",
+                    plan.name === "Enterprise" &&
+                      "enterprise-card-background border-border",
+                    plan.name === "Basic" && "border-border"
+                  )}
+                >
+                  <CardHeader className="p-3">
+                    <div className="flex justify-between items-center">
+                      <CardTitle className="text-lg text-card-foreground">
+                        {plan.name}
+                      </CardTitle>
+                      {isYearly && plan.savings && (
+                        <div
+                          className={cn(
+                            "px-3 py-1 text-sm rounded-full font-semibold",
+                            plan.isMostPopular
+                              ? "bg-gradient-to-r from-cyan-400 to-blue-500 text-white"
+                              : "bg-secondary text-secondary-foreground"
+                          )}
+                        >
+                          Save ${plan.savings}
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2">
+                      {plan.name === "Enterprise" ? (
+                        <p className="text-4xl font-bold text-card-foreground">
+                          Custom
+                        </p>
+                      ) : (
+                        <p className="text-4xl font-bold text-card-foreground">
+                          ${isYearly ? plan.priceYearly : plan.priceMonthly}
+                          <span className="text-base font-normal text-muted-foreground">
+                            /{isYearly ? "year" : "month"}
+                          </span>
+                        </p>
+                      )}
+                    </div>
+                    <CardDescription className="mt-2 text-sm text-muted-foreground">
+                      {plan.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-3 flex-grow">
+                    <ul className="space-y-1">
+                      {plan.features.map((feature) => (
+                        <li
+                          key={feature}
+                          className="flex items-center text-sm text-muted-foreground"
+                        >
+                          <svg
+                            className="w-5 h-5 text-green-500 mr-3 flex-shrink-0"
+                            viewBox="0 0 24 24"
+                            fill="currentColor"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path
+                              fillRule="evenodd"
+                              clipRule="evenodd"
+                              d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM9.29 16.29l-3.58-3.59L7.15 11l2.14 2.14 5.57-5.57L16.3 9.01l-7.01 7.28z"
+                            />
+                          </svg>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </CardContent>
+                  <CardFooter className="p-3 mt-auto">
+                    <Button
+                      onClick={() => handleCheckout(plan)}
+                      className={cn(
+                        "w-full rounded-lg py-1 text-sm font-semibold transition-colors",
+                        plan.isMostPopular
+                          ? "bg-white text-black hover:bg-gray-200 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
+                          : "border bg-transparent text-black hover:bg-accent dark:text-muted-foreground"
+                      )}
+                    >
+                      {plan.name === "Enterprise"
+                        ? "Contact Sales"
+                        : "Get Started"}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </div>
     </div>
   );
 }
