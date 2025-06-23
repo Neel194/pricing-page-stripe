@@ -14,10 +14,20 @@ import { cn } from "@/lib/utils";
 import Navbar from "./Navbar";
 import getStripe from "@/lib/getStripe";
 
+interface Plan {
+  name: string;
+  priceMonthly: number | string;
+  priceYearly?: number;
+  savings?: number;
+  description: string;
+  features: string[];
+  isMostPopular: boolean;
+}
+
 export default function Home() {
   const [isYearly, setIsYearly] = useState(false);
 
-  const plans = [
+  const plans: Plan[] = [
     {
       name: "Basic",
       priceMonthly: 10,
@@ -36,7 +46,7 @@ export default function Home() {
       priceMonthly: 25,
       priceYearly: 250,
       savings: 50,
-      description: "Perfect for owners of small & medium businessess",
+      description: "Perfect for owners of small & medium businesses",
       features: [
         "Example Feature Number 1",
         "Example Feature Number 2",
@@ -58,7 +68,7 @@ export default function Home() {
     },
   ];
 
-  const handleCheckout = async (plan: any) => {
+  const handleCheckout = async (plan: Plan) => {
     if (plan.name === "Enterprise") {
       // Handle enterprise contact form or redirect
       console.log("Contact sales for Enterprise plan");
@@ -96,7 +106,7 @@ export default function Home() {
           <div className="text-center mb-4">
             <h1 className="text-3xl font-bold">Pricing Plans</h1>
             <p className="text-xl pt-1 text-muted-foreground">
-              Choose the plan that's right for you
+              Choose the plan that&apos;s right for you
             </p>
           </div>
 
