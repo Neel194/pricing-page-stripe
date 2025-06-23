@@ -30,7 +30,7 @@ To get a local copy up and running, follow these simple steps.
 
 1. Clone the repo
    ```sh
-   git clone https://github.com/Neel194/simple-landing-pricing-page.git
+   git clone https://github.com/Neel194/pricing-page-stripe.git
    ```
 2. Install NPM packages
    ```sh
